@@ -11,6 +11,7 @@ class FileParser
   def initialize(list)
     @list = Dir.glob(list)
     @result = {}
+    @output = ''
   end
 
   def start
@@ -23,7 +24,7 @@ class FileParser
       end
     end
 
-    p @result
+    print result
   end
 
   def first_file
@@ -36,6 +37,17 @@ class FileParser
 
       p @result
     end
+  end
+
+  def result
+    ids = @result.keys
+    draw(list: @result, level: :id) do |sublist|
+      draw(list: sublist, level: :date) do |sublist|
+        draw(list: sublist, level: :type)
+      end
+    end
+
+    @output
   end
 
   private
@@ -67,6 +79,28 @@ class FileParser
         @current_date << type_string
       end
     end
+  end
+
+  def draw(args)
+    args[:list].each do |sublist|
+      if block_given?
+        add_line(level: args[:level], value: sublist[0])
+        yield(sublist[1])
+      else
+        add_line(level: :type, value: sublist.to_s)
+      end
+    end
+  end
+
+  def add_line(args)
+    tab = 
+      case args[:level]
+      when :id   then ''    
+      when :date then ' '
+      when :type then '  '
+      end
+
+    @output << tab << args[:value] << "\n"
   end
 
   def valid_line?(line)
