@@ -1,5 +1,10 @@
+require 'date'
+
 class FileParser
-  REG_ID = /U[0-9]+/
+  TYPES = %w[account activity position security]
+
+  REG_ID   = /U[0-9]+/
+  REG_DATE = /[0-9]{8}/
 
   def initialize(list)
     @list = Dir.glob(list)
@@ -18,16 +23,38 @@ class FileParser
     File.open(@list.first, 'r') do |file|
       accounts = file.read.split(/\n/)
       accounts.map do |line|
-        if line.match(REG_ID)
-          find_or_create_id line          
+        if valid_line? line
+          @line = line
+
+          find_or_create_id 
+          find_or_create_date
+          # find_or_create_type
         end
       end
+
+      p @result
     end
   end
 
   private
-  def find_or_create_id(line)
-    match = line.match(REG_ID)[0]
-    @result[match] ||= {} 
+  def find_or_create_id
+    match = @line.match(REG_ID)[0]
+    @current_id = @result[match] ||= {} 
+  end
+
+  def find_or_create_date
+    @line.scan(REG_DATE) do |date_string|
+      date = str_to_date(date_string)
+      next unless date
+      @current_date = @current_id[date] ||= []
+    end
+  end
+
+  def valid_line?(line)
+    line.match(REG_ID)
+  end
+
+  def str_to_date(string)
+    Date.strptime(string, "%Y%m%d").to_s rescue nil
   end
 end
