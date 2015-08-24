@@ -1,0 +1,3 @@
+H,U79014,Account,20150209,15:47:00,20150116,1.8,
+D,U79014,Chad A Guimond,368 Brandon Ave,,Glen Ellyn,IL,60137,United States,Individual,Individual,USD,,,Cash,"Forex,Futures",,
+T,3,
