@@ -21,6 +21,7 @@ class FileParser
           @line = line
           start_chain if valid_line? line
         end
+        file.close
       end
     end
 
