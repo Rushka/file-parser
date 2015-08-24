@@ -27,23 +27,10 @@ class FileParser
     print result
   end
 
-  def first_file
-    File.open(@list.first, 'r') do |file|
-
-      file.read.split(/\n/).each do |line|
-        @line = line
-        start_chain if valid_line? line
-      end
-
-      p @result
-    end
-  end
-
   def result
-    ids = @result.keys
-    draw(list: @result, level: :id) do |sublist|
-      draw(list: sublist, level: :date) do |sublist|
-        draw(list: sublist, level: :type)
+    draw(list: @result, level: :id) do |date_sublist|
+      draw(list: date_sublist, level: :date) do |type_sublist|
+        draw(list: type_sublist, level: :type)
       end
     end
 
@@ -66,7 +53,6 @@ class FileParser
     @line.scan(REG_DATE) do |date_string|
       date = str_to_date(date_string)
       next unless date
-
       @current_date = @current_id[date] ||= []
 
       find_or_create_type
@@ -82,12 +68,14 @@ class FileParser
   end
 
   def draw(args)
-    args[:list].each do |sublist|
-      if block_given?
+    # args[:list] == [%key%, %value%]
+
+    args[:list].sort.each do |sublist|
+      unless sublist.kind_of? String
         add_line(level: args[:level], value: sublist[0])
-        yield(sublist[1])
+        yield(sublist[1]) if block_given?
       else
-        add_line(level: :type, value: sublist.to_s)
+        add_line(level: args[:level], value: sublist.downcase)
       end
     end
   end
@@ -97,7 +85,7 @@ class FileParser
       case args[:level]
       when :id   then ''    
       when :date then ' '
-      when :type then '  '
+      when :type then ' ' * 2
       end
 
     @output << tab << args[:value] << "\n"
